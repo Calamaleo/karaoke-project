@@ -1,4 +1,4 @@
-"""Backend API tests for KaraoQ karaoke app."""
+"""Backend API tests for KaraRoom karaoke app."""
 import os
 import time
 import pytest

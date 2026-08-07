@@ -591,6 +591,12 @@ async def add_entry(event_id: str, payload: EntryCreate):
 # ---------- WebSocket (realtime queue updates) ----------
 @app.websocket("/api/ws/{event_id}")
 async def ws_event(websocket: WebSocket, event_id: str):
+
+    print("WEBSOCKET REQUEST ARRIVATA:", event_id)
+
+    await manager.connect(event_id, websocket)
+
+    print("WEBSOCKET CONNESSO:", event_id)
     await manager.connect(event_id, websocket)
     try:
         while True:
