@@ -226,6 +226,10 @@ class RegisterInput(BaseModel):
     password: str = Field(min_length=6)
     name: str = Field(min_length=1)
 
+class NotificationToken(BaseModel):
+    event_id: str
+    email: EmailStr
+    token: str
 
 class LoginInput(BaseModel):
     email: EmailStr
@@ -538,7 +542,26 @@ async def notify_turn(event_id: str, entry_id: str, user: dict = Depends(get_cur
         "entry_id": entry_id,
     })
     return {"ok": True}
+@api_router.post("/public/save-token")
+async def save_notification_token(payload: NotificationToken):
 
+    await db.notification_tokens.update_one(
+        {
+            "event_id": payload.event_id,
+            "email": payload.email.lower()
+        },
+        {
+            "$set": {
+                "token": payload.token,
+                "updated_at": iso(now_utc())
+            }
+        },
+        upsert=True
+    )
+
+    return {
+        "ok": True
+    }
 
 # ---------- Public routes (user) ----------
 @api_router.get("/public/events/by-code/{join_code}")
@@ -623,6 +646,13 @@ async def seed():
     await db.user_sessions.create_index("session_token")
     await db.events.create_index("join_code")
     await db.queue_entries.create_index("event_id")
+    await db.notification_tokens.create_index(
+    [
+        ("event_id", 1),
+        ("email", 1)
+    ],
+    unique=True
+)
 
     admin_email = os.environ.get("ADMIN_EMAIL", "admin@example.com").lower()
     admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
