@@ -586,6 +586,29 @@ async def notify_turn(event_id: str, entry_id: str, user: dict = Depends(get_cur
 
     if not ent:
         raise HTTPException(status_code=404, detail="Brano non trovato")
+# DEBUG FIREBASE
+    tokens = await db.notification_tokens.find_one({
+        "event_id": event_id,
+        "email": ent["email"].lower()
+    })
+
+    print("TOKEN TROVATO:", tokens)
+
+    if tokens:
+        print("INVIO FIREBASE A:", tokens["token"])
+
+        messaging.send(
+            messaging.Message(
+                notification=messaging.Notification(
+                    title="È il tuo turno 🎤",
+                    body=f"Preparati: {ent['song_title']}"
+                ),
+                token=tokens["token"]
+            )
+        )
+
+    else:
+        print("NESSUN TOKEN PER:", ent["email"])
 
     await manager.broadcast(event_id, {
         "type": "your_turn",
