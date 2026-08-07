@@ -1,20 +1,23 @@
 {
-  "short_name": "Karaoke",
-  "name": "Karaoke Project",
+  "id": "/",
+  "short_name": "KaraRoom",
+  "name": "KaraRoom - Karaoke Queue",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#000000",
   "icons": [
     {
       "src": "/icon-192.png",
+      "sizes": "192x192",
       "type": "image/png",
-      "sizes": "192x192"
+      "purpose": "any maskable"
     },
     {
       "src": "/icon-512.png",
+      "sizes": "512x512",
       "type": "image/png",
-      "sizes": "512x512"
+      "purpose": "any maskable"
     }
-  ],
-  "start_url": "/",
-  "display": "standalone",
-  "theme_color": "#111111",
-  "background_color": "#111111"
+  ]
 }
