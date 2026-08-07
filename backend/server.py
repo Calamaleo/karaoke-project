@@ -572,9 +572,15 @@ async def reorder_queue(event_id: str, payload: ReorderInput, user: dict = Depen
 @api_router.post("/events/{event_id}/entries/{entry_id}/notify-turn")
 async def notify_turn(event_id: str, entry_id: str, user: dict = Depends(get_current_user)):
     await _get_owned_event(event_id, user)
-    ent = await db.queue_entries.find_one({"entry_id": entry_id, "event_id": event_id}, {"_id": 0})
+
+    ent = await db.queue_entries.find_one(
+        {"entry_id": entry_id, "event_id": event_id},
+        {"_id": 0}
+    )
+
     if not ent:
         raise HTTPException(status_code=404, detail="Brano non trovato")
+
     await manager.broadcast(event_id, {
         "type": "your_turn",
         "email": ent["email"],
@@ -583,23 +589,24 @@ async def notify_turn(event_id: str, entry_id: str, user: dict = Depends(get_cur
         "song_artist": ent["song_artist"],
         "entry_id": entry_id,
     })
-token_data = await db.notification_tokens.find_one({
-    "event_id": event_id,
-    "email": ent["email"].lower()
-})
 
 
-if token_data and token_data.get("token"):
+    token_data = await db.notification_tokens.find_one({
+        "event_id": event_id,
+        "email": ent["email"].lower()
+    })
 
-    messaging.send(
-        messaging.Message(
-            notification=messaging.Notification(
-                title="È il tuo turno 🎤",
-                body=f"Preparati: {ent['song_title']}"
-            ),
-            token=token_data["token"]
+    if token_data and token_data.get("token"):
+        messaging.send(
+            messaging.Message(
+                notification=messaging.Notification(
+                    title="È il tuo turno 🎤",
+                    body=f"Preparati: {ent['song_title']}"
+                ),
+                token=token_data["token"]
+            )
         )
-    )
+
     return {"ok": True}
 @api_router.post("/public/save-token")
 async def save_notification_token(payload: NotificationToken):
