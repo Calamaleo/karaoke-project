@@ -1,58 +1,99 @@
-import { useState } from "react";
-
-export default function EnableNotifications() {
-
-const supported =
-  typeof window !== "undefined" &&
-  "Notification" in window;
+import React, { useState } from "react";
+import { getToken } from "firebase/messaging";
+import { messaging } from "@/firebase";
 
 
-const [enabled, setEnabled] = useState(
-  typeof Notification !== "undefined" &&
-  Notification.permission === "granted"
-);
+export default function EnableNotifications({ eventId, email }) {
 
-const enableNotifications = async () => {
-
-if (!supported) {
- alert("Il browser non supporta le notifiche");
- return;
-}
+  const [enabled, setEnabled] = useState(false);
 
 
-const permission = await Notification.requestPermission();
+  const enableNotifications = async () => {
+
+    try {
+
+      if (!("Notification" in window)) {
+        alert("Browser non supportato");
+        return;
+      }
 
 
-if (permission === "granted") {
-
-setEnabled(true);
-
-new Notification("KaraRoom 🎤", {
-body:"Notifiche attivate! Ti avviseremo quando è il tuo turno.",
-icon:"/icon-192.png"
-});
-
-}
-
-};
+      const permission = await Notification.requestPermission();
 
 
-if (!supported) return null;
+      if (permission !== "granted") {
+        alert("Notifiche non autorizzate");
+        return;
+      }
 
 
-if(enabled){
-return (
-<div className="text-sm text-green-500">
-🔔 Notifiche attive
-</div>
-);
-}
+      const token = await getToken(messaging, {
+
+        vapidKey: "BGt-gcLxMzGhR1p6LlAy5zdJTPFVKCyOz1Xx0jW0EdKqSQfKJdkxluwEq9cWS4AnI1jgQItMcBUn7yyeeHI1Lms"
+
+      });
 
 
-return (
-<button onClick={enableNotifications}>
-🔔 Attiva notifiche
-</button>
-);
+      console.log("FIREBASE TOKEN:", token);
+
+
+      if(token){
+
+        await fetch(
+          `${process.env.REACT_APP_BACKEND_URL}/api/public/save-token`,
+          {
+
+          method:"POST",
+
+          headers:{
+            "Content-Type":"application/json"
+          },
+
+          body:JSON.stringify({
+
+            event_id:eventId,
+            email:email,
+            token:token
+
+          })
+
+        });
+
+
+        setEnabled(true);
+
+      }
+
+
+    } catch(err){
+
+      console.error(
+        "Errore notifiche:",
+        err
+      );
+
+    }
+
+  };
+
+
+  if(enabled){
+
+    return (
+      <div>
+        🔔 Notifiche attive
+      </div>
+    );
+
+  }
+
+
+  return (
+
+    <button onClick={enableNotifications}>
+      🔔 Attiva notifiche
+    </button>
+
+  );
 
 }

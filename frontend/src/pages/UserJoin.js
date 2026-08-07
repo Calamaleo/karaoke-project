@@ -331,20 +331,39 @@ export default function UserJoin() {
               </p>
             </div>
 
-            {currentTaken && (
-              <p data-testid="song-taken-error" className="text-sm text-destructive font-semibold flex items-center gap-1">
-                <Lock className="w-4 h-4" /> Questo brano è già stato scelto. Scegline un altro.
-              </p>
-            )}
-	<EnableNotifications />
-            <Button data-testid="submit-song" onClick={submit} disabled={closed || submitting || currentTaken || !song.song_title || emailStatus.checking || emailStatus.valid === false}
-              className="w-full font-semibold neon-glow h-12">
-              {submitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
-              Mettimi in coda
-            </Button>
-          </div>
-        )}
-      </main>
-    </div>
-  );
+{currentTaken && (
+  <p data-testid="song-taken-error" className="text-sm text-destructive font-semibold flex items-center gap-1">
+    <Lock className="w-4 h-4" />
+    Questo brano è già stato scelto. Scegline un altro.
+  </p>
+)}
+
+<EnableNotifications />
+
+<Button
+  data-testid="submit-song"
+  onClick={submit}
+  disabled={
+    closed ||
+    submitting ||
+    currentTaken ||
+    !song.song_title ||
+    emailStatus.checking ||
+    emailStatus.valid === false
+  }
+  className="w-full font-semibold neon-glow h-12"
+>
+  {submitting ? (
+    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+  ) : (
+    <Check className="w-4 h-4 mr-2" />
+  )}
+
+  Mettimi in coda
+</Button>
+   </div>
+    )}
+  </main>
+</div>
+);
 }
