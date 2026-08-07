@@ -168,7 +168,7 @@ export default function HostDashboard() {
             <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center neon-glow">
               <Mic2 className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="font-display font-extrabold text-lg hidden sm:block">KaraoQ</span>
+            <span className="font-display font-extrabold text-lg hidden sm:block">KaraRoom</span>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground hidden sm:block" data-testid="host-name">{user?.name}</span>

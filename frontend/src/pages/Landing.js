@@ -21,7 +21,7 @@ export default function Landing() {
           <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center neon-glow">
             <Mic2 className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="font-display font-extrabold text-xl tracking-tight">KaraoQ</span>
+          <span className="font-display font-extrabold text-xl tracking-tight">KaraRoom</span>
         </div>
         <div className="flex items-center gap-3">
           <ThemeToggle />
