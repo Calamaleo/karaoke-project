@@ -23,5 +23,3 @@ root.render(
     </QueryClientProvider>
   </React.StrictMode>,
 );
-
-register();
