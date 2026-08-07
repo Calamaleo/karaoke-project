@@ -1,13 +1,17 @@
 import React, { useState } from "react";
 
 export default function EnableNotifications() {
+
+  const supported = "Notification" in window;
+
   const [enabled, setEnabled] = useState(
-    Notification.permission === "granted"
+    supported && Notification.permission === "granted"
   );
 
   const enableNotifications = async () => {
-    if (!("Notification" in window)) {
-      alert("Il browser non supporta le notifiche");
+
+    if (!supported) {
+      alert("Questo browser non supporta le notifiche");
       return;
     }
 
@@ -23,18 +27,27 @@ export default function EnableNotifications() {
     }
   };
 
+
+  // Se il browser non supporta notifiche,
+  // non mostriamo niente e non blocchiamo l'app
+  if (!supported) {
+    return null;
+  }
+
+
   if (enabled) {
     return (
-      <p className="text-green-500 text-sm">
+      <div className="text-sm text-green-500 font-semibold">
         🔔 Notifiche attive
-      </p>
+      </div>
     );
   }
+
 
   return (
     <button
       onClick={enableNotifications}
-      className="bg-purple-600 text-white px-4 py-2 rounded-lg"
+      className="w-full rounded-xl border p-3 font-semibold"
     >
       🔔 Attiva notifiche
     </button>
