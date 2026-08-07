@@ -24,20 +24,40 @@ export function useEventSocket(eventId, onMessage) {
     };
 
     try {
-      ws = new WebSocket(wsUrl);
-      ws.onmessage = (e) => {
-        try {
-          emit(JSON.parse(e.data));
-        } catch {
-          emit({ type: "queue_updated" });
-        }
-      };
-      ws.onerror = () => startPollFallback();
-      ws.onclose = () => { if (!closedByUs) startPollFallback(); };
-    } catch {
-      startPollFallback();
-    }
+  console.log("WEBSOCKET CONNECT:", wsUrl);
 
+  ws = new WebSocket(wsUrl);
+
+  ws.onopen = () => {
+    console.log("WEBSOCKET CONNECTED");
+  };
+
+  ws.onmessage = (e) => {
+    console.log("WEBSOCKET RAW:", e.data);
+
+    try {
+      const msg = JSON.parse(e.data);
+      console.log("WEBSOCKET MESSAGE:", msg);
+      emit(msg);
+    } catch {
+      emit({ type: "queue_updated" });
+    }
+  };
+
+  ws.onerror = (err) => {
+    console.log("WEBSOCKET ERROR:", err);
+    startPollFallback();
+  };
+
+  ws.onclose = () => {
+    console.log("WEBSOCKET CLOSED");
+    if (!closedByUs) startPollFallback();
+  };
+
+} catch (e) {
+  console.log("WEBSOCKET EXCEPTION:", e);
+  startPollFallback();
+}
     return () => {
       closedByUs = true;
       if (pollTimer) clearInterval(pollTimer);
