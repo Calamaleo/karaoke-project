@@ -12,6 +12,8 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Mic2, Loader2, Lock, Search, Check, PartyPopper, ListMusic, ArrowLeft, QrCode, Keyboard, Sparkles, Megaphone } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { sendTurnNotification } from "@/utils/notifications";
+import EnableNotifications from "@/components/EnableNotifications";
 
 export default function UserJoin() {
   const { code } = useParams();
@@ -72,9 +74,16 @@ export default function UserJoin() {
     if (msg?.type === "queue_updated") {
       refreshEvent();
     } else if (msg?.type === "your_turn" && email && msg.email === email.trim().toLowerCase()) {
-      setMyTurn(msg);
-      toast.success("È il tuo turno! Preparati a cantare 🎤", { duration: 8000 });
-    }
+
+    setMyTurn(msg);
+
+    toast.success("È il tuo turno! Preparati a cantare 🎤", {
+        duration: 8000
+    });
+
+    sendTurnNotification();
+
+}
   }, [refreshEvent, email]));
 
   const runSearch = (q) => {
@@ -324,7 +333,7 @@ export default function UserJoin() {
                 <Lock className="w-4 h-4" /> Questo brano è già stato scelto. Scegline un altro.
               </p>
             )}
-
+	<EnableNotifications />
             <Button data-testid="submit-song" onClick={submit} disabled={closed || submitting || currentTaken || !song.song_title || emailStatus.checking || emailStatus.valid === false}
               className="w-full font-semibold neon-glow h-12">
               {submitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
