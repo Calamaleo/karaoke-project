@@ -71,20 +71,23 @@ export default function UserJoin() {
   useEffect(() => { if (code) loadEvent(code); }, [code, loadEvent]);
   useEffect(() => { api.get("/meta").then(({ data }) => setMeta(data)); }, []);
   useEventSocket(event?.event_id, useCallback((msg) => {
-    if (msg?.type === "queue_updated") {
-      refreshEvent();
-    } else if (msg?.type === "your_turn" && email && msg.email === email.trim().toLowerCase()) {
+  if (msg?.type === "queue_updated") {
+    refreshEvent();
+
+  } else if (msg?.type === "your_turn") {
+
+    console.log("RICEVUTO YOUR TURN:", msg);
 
     setMyTurn(msg);
 
     toast.success("È il tuo turno! Preparati a cantare 🎤", {
-        duration: 8000
+      duration: 8000
     });
 
     sendTurnNotification();
+  }
 
-}
-  }, [refreshEvent, email]));
+}, [refreshEvent, email]));
 
   const runSearch = (q) => {
     setQuery(q);
