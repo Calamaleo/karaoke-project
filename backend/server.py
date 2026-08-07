@@ -21,10 +21,16 @@ import requests
 from email_validator import validate_email, EmailNotValidError
 from datetime import datetime, timezone, timedelta
 
-cred = credentials.Certificate("kararoom-9dea3-firebase-adminsdk-fbsvc-45f09576ab.json")
+import os
+import json
+
+firebase_json = os.environ.get("FIREBASE_CREDENTIALS")
+
+cred = credentials.Certificate(
+    json.loads(firebase_json)
+)
 
 firebase_admin.initialize_app(cred)
-
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
