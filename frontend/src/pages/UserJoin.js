@@ -338,7 +338,10 @@ export default function UserJoin() {
   </p>
 )}
 
-<EnableNotifications />
+<EnableNotifications
+    eventId={event.event_id}
+    email={email}
+/>
 
 <Button
   data-testid="submit-song"
