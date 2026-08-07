@@ -2,13 +2,19 @@ import React, { useState } from "react";
 import { getToken } from "firebase/messaging";
 import { messaging } from "@/firebase";
 
-
 export default function EnableNotifications({ eventId, email }) {
 
   const [enabled, setEnabled] = useState(false);
 
+  const toggleNotifications = async () => {
 
-  const enableNotifications = async () => {
+    // Se sono già attive le tolgo solo graficamente
+    // (il browser gestisce il blocco reale)
+    if (enabled) {
+      setEnabled(false);
+      return;
+    }
+
 
     try {
 
@@ -29,7 +35,8 @@ export default function EnableNotifications({ eventId, email }) {
 
       const token = await getToken(messaging, {
 
-        vapidKey: "BGt-gcLxMzGhR1p6LlAy5zdJTPFVKCyOz1Xx0jW0EdKqSQfKJdkxluwEq9cWS4AnI1jgQItMcBUn7yyeeHI1Lms"
+        vapidKey:
+        "BGt-gcLxMzGhR1p6LlAy5zdJTPFVKCyOz1Xx0jW0EdKqSQfKJdkxluwEq9cWS4AnI1jgQItMcBUn7yyeeHI1Lms"
 
       });
 
@@ -37,28 +44,24 @@ export default function EnableNotifications({ eventId, email }) {
       console.log("FIREBASE TOKEN:", token);
 
 
-if(token){
+      if(token){
 
-    const data = {
-        event_id: eventId,
-        email: email,
-        token: token
-    };
+        await fetch(
+          `${process.env.REACT_APP_BACKEND_URL}/api/public/save-token`,
+          {
+            method:"POST",
 
-    console.log("DATI CHE INVIO AL BACKEND:", data);
+            headers:{
+              "Content-Type":"application/json"
+            },
 
-    await fetch(
-      `${process.env.REACT_APP_BACKEND_URL}/api/public/save-token`,
-      {
-        method:"POST",
-
-        headers:{
-          "Content-Type":"application/json"
-        },
-
-        body: JSON.stringify(data)
-
-      });
+            body:JSON.stringify({
+              event_id:eventId,
+              email:email,
+              token:token
+            })
+          }
+        );
 
 
         setEnabled(true);
@@ -78,22 +81,40 @@ if(token){
   };
 
 
-  if(enabled){
-
-    return (
-      <div>
-        🔔 Notifiche attive
-      </div>
-    );
-
-  }
-
-
   return (
 
-    <button onClick={enableNotifications}>
-      🔔 Attiva notifiche
-    </button>
+    <div 
+      className="flex items-center gap-3 cursor-pointer"
+      onClick={toggleNotifications}
+    >
+
+      <div
+        className={`
+          w-12 h-6 rounded-full transition-all
+          ${enabled ? "bg-green-500" : "bg-gray-400"}
+        `}
+      >
+
+        <div
+          className={`
+            w-5 h-5 bg-white rounded-full mt-0.5
+            transition-all
+            ${enabled ? "translate-x-6" : "translate-x-0.5"}
+          `}
+        />
+
+      </div>
+
+
+      <span>
+        {enabled
+          ? "🔔 Notifiche attive"
+          : "🔕 Attiva notifiche"
+        }
+      </span>
+
+
+    </div>
 
   );
 
