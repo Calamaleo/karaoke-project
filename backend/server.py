@@ -10,6 +10,8 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import logging
 import asyncio
+import firebase_admin
+from firebase_admin import credentials, messaging
 from pydantic import BaseModel, EmailStr, Field
 from typing import List, Optional, Dict, Set
 import uuid
@@ -18,6 +20,10 @@ import bcrypt
 import requests
 from email_validator import validate_email, EmailNotValidError
 from datetime import datetime, timezone, timedelta
+
+cred = credentials.Certificate("kararoom-9dea3-firebase-adminsdk-fbsvc-45f09576ab.json")
+
+firebase_admin.initialize_app(cred)
 
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
@@ -58,9 +64,45 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
-async def notify(event_id: str):
-    await manager.broadcast(event_id, {"type": "queue_updated"})
+async def send_push_notification(event_id: str, title: str, body: str):
+    tokens = await db.notification_tokens.find(
+        {"event_id": event_id},
+        {"_id": 0, "token": 1}
+    ).to_list(None)
 
+    for item in tokens:
+        token = item.get("token")
+
+        if not token:
+            continue
+
+        try:
+            message = messaging.Message(
+                notification=messaging.Notification(
+                    title=title,
+                    body=body
+                ),
+                token=token
+            )
+
+            messaging.send(message)
+
+        except Exception as e:
+            print("Firebase notification error:", e)
+
+
+
+async def notify(event_id: str):
+    await manager.broadcast(
+        event_id,
+        {"type": "queue_updated"}
+    )
+
+    await send_push_notification(
+        event_id,
+        "Karaoke aggiornato 🎤",
+        "La coda del karaoke è stata aggiornata"
+    )
 
 EMAIL_INVALID_MSG = "Il dominio dell'email non sembra valido o non esiste."
 _email_domain_cache: Dict[str, bool] = {}
@@ -541,6 +583,23 @@ async def notify_turn(event_id: str, entry_id: str, user: dict = Depends(get_cur
         "song_artist": ent["song_artist"],
         "entry_id": entry_id,
     })
+token_data = await db.notification_tokens.find_one({
+    "event_id": event_id,
+    "email": ent["email"].lower()
+})
+
+
+if token_data and token_data.get("token"):
+
+    messaging.send(
+        messaging.Message(
+            notification=messaging.Notification(
+                title="È il tuo turno 🎤",
+                body=f"Preparati: {ent['song_title']}"
+            ),
+            token=token_data["token"]
+        )
+    )
     return {"ok": True}
 @api_router.post("/public/save-token")
 async def save_notification_token(payload: NotificationToken):
