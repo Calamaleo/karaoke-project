@@ -37,27 +37,28 @@ export default function EnableNotifications({ eventId, email }) {
       console.log("FIREBASE TOKEN:", token);
 
 
-      if(token){
+if(token){
 
-        await fetch(
-          `${process.env.REACT_APP_BACKEND_URL}/api/public/save-token`,
-          {
+    const data = {
+        event_id: eventId,
+        email: email,
+        token: token
+    };
 
-          method:"POST",
+    console.log("DATI CHE INVIO AL BACKEND:", data);
 
-          headers:{
-            "Content-Type":"application/json"
-          },
+    await fetch(
+      `${process.env.REACT_APP_BACKEND_URL}/api/public/save-token`,
+      {
+        method:"POST",
 
-          body:JSON.stringify({
+        headers:{
+          "Content-Type":"application/json"
+        },
 
-            event_id:eventId,
-            email:email,
-            token:token
+        body: JSON.stringify(data)
 
-          })
-
-        });
+      });
 
 
         setEnabled(true);
