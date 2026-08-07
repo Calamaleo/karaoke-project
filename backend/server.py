@@ -576,17 +576,32 @@ async def reorder_queue(event_id: str, payload: ReorderInput, user: dict = Depen
 
 
 @api_router.post("/events/{event_id}/entries/{entry_id}/notify-turn")
-async def notify_turn(event_id: str, entry_id: str, user: dict = Depends(get_current_user)):
+async def notify_turn(
+    event_id: str,
+    entry_id: str,
+    user: dict = Depends(get_current_user)
+):
     await _get_owned_event(event_id, user)
 
     ent = await db.queue_entries.find_one(
-        {"entry_id": entry_id, "event_id": event_id},
-        {"_id": 0}
+        {
+            "entry_id": entry_id,
+            "event_id": event_id
+        },
+        {
+            "_id": 0
+        }
     )
 
     if not ent:
-        raise HTTPException(status_code=404, detail="Brano non trovato")
-# DEBUG FIREBASE
+        raise HTTPException(
+            status_code=404,
+            detail="Brano non trovato"
+        )
+
+
+    # ---------- FIREBASE PUSH ----------
+
     tokens = await db.notification_tokens.find_one({
         "event_id": event_id,
         "email": ent["email"].lower()
@@ -594,9 +609,11 @@ async def notify_turn(event_id: str, entry_id: str, user: dict = Depends(get_cur
 
     print("TOKEN TROVATO:", tokens)
 
-    if tokens:
-        print("INVIO FIREBASE A:", tokens["token"])
+if tokens and tokens.get("token"):
 
+    print("INVIO FIREBASE A:", tokens["token"])
+
+    try:
         messaging.send(
             messaging.Message(
                 notification=messaging.Notification(
@@ -607,8 +624,19 @@ async def notify_turn(event_id: str, entry_id: str, user: dict = Depends(get_cur
             )
         )
 
+        print("PUSH FIREBASE INVIATA")
+
+    except Exception as e:
+        print("ERRORE FIREBASE:", e)
+
+else:
+    print("NESSUN TOKEN PER:", ent["email"])
+
     else:
         print("NESSUN TOKEN PER:", ent["email"])
+
+
+    # ---------- WEBSOCKET ----------
 
     await manager.broadcast(event_id, {
         "type": "your_turn",
@@ -620,23 +648,12 @@ async def notify_turn(event_id: str, entry_id: str, user: dict = Depends(get_cur
     })
 
 
-    token_data = await db.notification_tokens.find_one({
-        "event_id": event_id,
-        "email": ent["email"].lower()
-    })
+    return {
+        "ok": True
+    }
 
-    if token_data and token_data.get("token"):
-        messaging.send(
-            messaging.Message(
-                notification=messaging.Notification(
-                    title="È il tuo turno 🎤",
-                    body=f"Preparati: {ent['song_title']}"
-                ),
-                token=token_data["token"]
-            )
-        )
 
-    return {"ok": True}
+
 @api_router.post("/public/save-token")
 async def save_notification_token(payload: NotificationToken):
 
