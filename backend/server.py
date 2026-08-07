@@ -607,7 +607,7 @@ async def notify_turn(
 
     print("TOKEN TROVATO:", tokens)
 
-    if tokens and tokens.get("token"):
+    if tokens and tokens.get("token") and tokens.get("enabled", True):
 
         print("INVIO FIREBASE A:", tokens["token"])
 
@@ -648,6 +648,7 @@ async def save_notification_token(payload: NotificationToken):
         {
             "$set": {
                 "token": payload.token,
+		"enabled": True,
                 "updated_at": iso(now_utc())
             }
         },
