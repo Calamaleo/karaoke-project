@@ -600,8 +600,6 @@ async def notify_turn(
         )
 
 
-    # ---------- FIREBASE PUSH ----------
-
     tokens = await db.notification_tokens.find_one({
         "event_id": event_id,
         "email": ent["email"].lower()
@@ -609,11 +607,10 @@ async def notify_turn(
 
     print("TOKEN TROVATO:", tokens)
 
-if tokens and tokens.get("token"):
+    if tokens and tokens.get("token"):
 
-    print("INVIO FIREBASE A:", tokens["token"])
+        print("INVIO FIREBASE A:", tokens["token"])
 
-    try:
         messaging.send(
             messaging.Message(
                 notification=messaging.Notification(
@@ -624,19 +621,9 @@ if tokens and tokens.get("token"):
             )
         )
 
-        print("PUSH FIREBASE INVIATA")
-
-    except Exception as e:
-        print("ERRORE FIREBASE:", e)
-
-else:
-    print("NESSUN TOKEN PER:", ent["email"])
-
     else:
         print("NESSUN TOKEN PER:", ent["email"])
 
-
-    # ---------- WEBSOCKET ----------
 
     await manager.broadcast(event_id, {
         "type": "your_turn",
@@ -648,11 +635,7 @@ else:
     })
 
 
-    return {
-        "ok": True
-    }
-
-
+    return {"ok": True}
 
 @api_router.post("/public/save-token")
 async def save_notification_token(payload: NotificationToken):
