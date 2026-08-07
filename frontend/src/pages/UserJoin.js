@@ -87,7 +87,7 @@ export default function UserJoin() {
     sendTurnNotification();
   }
 
-}, [refreshEvent, email]));
+}, [refreshEvent]));
 
   const runSearch = (q) => {
     setQuery(q);
